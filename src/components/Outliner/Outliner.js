@@ -1,10 +1,6 @@
 import React from "react";
-import data from "./data";
-//import { render } from "react-dom";
 import Hypertopic from 'hypertopic';
 import conf from '../../config/config.json';
-
-import '../../styles/App.css';
 //mettre en state DONE
 //terme en anglais DONE
 //fetch hypertopic PRESQUE
@@ -22,27 +18,39 @@ class Outliner extends React.Component {
     this.state = {};
   }
   render() {
-    let tree = this._getTree();
     return (
       <div>
-        <h1> TEST </h1>
+        <h1> {this.state.title} </h1>
           <ul>
-            {tree}
+            <Tree data={this.state} father={this.state.upper}/>
           </ul>
       </div>
     );
   }
-//<Tree father={this.state.fathers.upper} data={this.state}  />
-  componentWillMount() {
-    this._fetchData();
-  }
 
   componentDidMount() {
-  }
+    console.log("on fetch la data");
+    this._fetchData();
+    console.log("on set upper");
+    console.log("on lance timer");
+    this.timerID = setInterval(
+     () => this.tick(),
+     1000
+   );
+ }
 
-  _getTree() {
-      return <Tree father={Object.keys(this.state.fathers)}   />
+ componentWillUnmount() {
+   clearInterval(this.timerID);
+ }
+
+ tick() {
+   if (this.state.fathers.upper !== this.state.upper){
+     console.log("le upper change");
+   this.setState({
+     upper: this.state.fathers.upper
+   });
   }
+ }
 
   _fetchData() {
 
@@ -52,6 +60,7 @@ class Outliner extends React.Component {
 
         db.get({ _id: this.props.match.params.id })
           .then(x => {this.setState({topics : x.topics});
+                this.setState({title : x.viewpoint_name});
                 return x.topics})
           .then(x => {
             let listFather = Object.keys(x).map(
@@ -67,38 +76,32 @@ class Outliner extends React.Component {
                     ...Object.values(e)[0]
                   ])
             );
+            console.log(listFatherGroup);
             return listFatherGroup;
           });
           this.setState({fathers : listFatherGroup});
-          this.setState({title : 'HISTOIRE'});
-//this.setState({title : 'HISTOIRE DE L ART',topics : data.topics,fathers : data.fathers});
   }
+
 }
 
 class Tree extends React.Component {
-  render() {
-    let arra = Object.keys(data.fathers);
-    let arr = Array.from(this.props.father);
-  //  return arr.map(e => {
+    render() {
+      if (Array.isArray(this.props.father)) {
+        const peres = this.props.father.map( e => (typeof this.props.data.fathers[e] === "object") ?
+            <li> {this.props.data.topics[e].name} <ul> {this._getFils(e)} </ul></li> :
+            <li> {this.props.data.topics[e].name} </li>
+        );
+          return (<div> {peres} </div>);
+      } else {
+        return <li> NOTHING </li>
+      }
+    }
+
+    _getFils(e) {
       return (
-        <li>
-         {typeof arra}
-        </li>)
-      //})
-  }
-
-  //{this.props.data.topics[e].name}
-//{this.props.data.topics[e].name} </li>;
-  _getChild(e) {
-    return (
-      <ul>
-        <Tree father={data.fathers[e]} />
-
-      </ul>
-    );
-
-  }
-    //<Tree father={this.props.data.fathers[e]} data={this.props.data} />
+            <Tree father={this.props.data.fathers[e]} data={this.props.data} />
+      );
+    }
 }
 
 export default Outliner;
