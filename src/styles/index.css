@@ -33,3 +33,17 @@ a {
 a:hover {
   color: dimgrey;
 }
+
+input[type=text] {
+    border: none;
+    width: -webkit-max-content;
+}
+
+input[type=text]:focus {
+    background-color: lightblue;
+    width: -webkit-max-content;
+}
+
+.outliner {
+  padding-left: 15px;
+}
