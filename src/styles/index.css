@@ -44,6 +44,20 @@ input[type=text]:focus {
     width: -webkit-max-content;
 }
 
-.outliner {
-  padding-left: 15px;
+li.outliner {
+  list-style: none
+}
+
+li.add {
+  list-style: none;
+}
+
+a.remove {
+  color: red;
+  cursor: pointer;
+}
+
+a.add {
+  color: green;
+  cursor: pointer;
 }
