@@ -8,9 +8,9 @@ var equal = require('deep-equal');
 import '../../styles/App.css';
 
 //gérer entrer DONE
-//gérer _delete
+//gérer _delete DONE
 //gérer premier topic
-//feuille de style
+//feuille de style DONE
 
 
 const _log = (x) => console.log(JSON.stringify(x, null, 2));
@@ -180,13 +180,23 @@ class Tree extends React.Component {
         .catch(_error);
       }
 
+      collectChilds(e,list) {
+        console.log(list);
+        if (this.props.data.fathers[e] !== undefined) {
+          this.props.data.fathers[e].map(c => {
+            console.log(c);
+            list = this.collectChilds(c,list);
+          });
+        }
+        list.push(e);
+        console.log(list);
+        return list;
+      }
+
       _deleteChild(index) {
       let listDelete = [];
-      if (this.props.data.fathers[this.props.childs[index]] !== undefined) {
-        this.props.data.fathers[this.props.childs[index]].forEach(e =>
-          listDelete.push(e));
-      }
-      listDelete.push(this.props.childs[index]);
+      listDelete = this.collectChilds(this.props.childs[index],listDelete);
+      console.log(listDelete);
       this.deleteTop(listDelete);
       let childs = this.state.childs.slice(0,0);
       this.setState({childs : childs});
