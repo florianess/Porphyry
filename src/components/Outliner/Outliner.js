@@ -7,12 +7,6 @@ var equal = require('deep-equal');
 
 import '../../styles/App.css';
 
-//gérer entrer DONE
-//gérer _delete DONE
-//gérer premier topic
-//feuille de style DONE
-
-
 const _log = (x) => console.log(JSON.stringify(x, null, 2));
 const _error = (x) => console.error(x.message);
 
@@ -29,15 +23,18 @@ class Outliner extends React.Component {
   constructor() {
     super();
     this.state = {
-      stop : true
+      stop : true,
+      nextTitle : ''
     };
   }
 
+
   render() {
+    var title = this._getTitle();
     return (
     <div>
       <div className='App'>
-        <h1>{this.state.title}</h1>
+        <h1>{title} </h1>
         <div className='Status'>Modification du point de vue</div>
       </div>
       <div className="Outliner">
@@ -46,6 +43,39 @@ class Outliner extends React.Component {
     </div>
     );
   }
+
+  _getTitle() {
+    if (this.state.title !== undefined) {
+      return this.state.title;
+    } else {
+      return (
+        <div>
+          <a className='add' onClick={(e) => this._newVP(this)}>+&nbsp;</a>
+          <input type="text" value={this.state.nextTitle} onChange={this.addTitle.bind(this)} onKeyPress={this.handleKeyPress.bind(this)}/>
+        </div>
+      );
+    }
+  }
+
+  _newVP() {
+    db.post({_id:this.props.match.params.id, viewpoint_name: this.state.nextTitle, topics:{}})
+      .then(_log)
+      .then(this.setState({title : this.state.nextTitle}))
+      .catch(_error);
+
+  }
+  handleKeyPress(event){
+    if(event.key === 'Enter'){
+      this._newVP(this);
+    }
+
+  }
+
+  addTitle(event){
+    this.setState({nextTitle : event.target.value})
+  }
+
+
 
   componentDidMount() {
     this._fetchData();
@@ -127,20 +157,26 @@ class Tree extends React.Component {
     }
 
     handleKeyPress(event) {
-      if(event.key == 'Enter'){
+      if(event.key === 'Enter'){
         this._addChild(this);
       }
     }
 
     handleKeyPressSub(index, event) {
-      if(event.key == 'Enter'){
+      if(event.key === 'Enter'){
         this._addSub(index);
       }
     }
 
     handleKeyPressEdit(index, event) {
-      if(event.key == 'Enter'){
+      if(event.key === 'Enter'){
         this._editTopic(index);
+      }
+    }
+
+    handleKPFirst(event) {
+      if(event.key === 'Enter'){
+        this._firstTopic();
       }
     }
 
@@ -181,7 +217,6 @@ class Tree extends React.Component {
       }
 
       collectChilds(e,list) {
-        console.log(list);
         if (this.props.data.fathers[e] !== undefined) {
           this.props.data.fathers[e].map(c => {
             console.log(c);
@@ -189,14 +224,12 @@ class Tree extends React.Component {
           });
         }
         list.push(e);
-        console.log(list);
         return list;
       }
 
       _deleteChild(index) {
       let listDelete = [];
       listDelete = this.collectChilds(this.props.childs[index],listDelete);
-      console.log(listDelete);
       this.deleteTop(listDelete);
       let childs = this.state.childs.slice(0,0);
       this.setState({childs : childs});
@@ -244,6 +277,24 @@ class Tree extends React.Component {
             this.state.addSub[i] = '')
           .catch(_error);
       }
+    }
+
+    _firstTopic() {
+      var id = makeID();
+      var newTopic = {
+        name: this.state.add,
+        broader : []
+      };
+      db.get({_id:this.props.uri})
+        .then(data => {
+          Object.assign(data.topics, {[id] : newTopic});
+          this.setState({add : ''});
+          return data
+        })
+        .then(db.post)
+        .catch(_error);
+
+
     }
 
     display(idx) {
@@ -299,8 +350,8 @@ class Tree extends React.Component {
           </ul>);
     } else {
       return <li className='add'>
-        <a className='add' onClick={(e) => this._addChild(this)}>+&nbsp;</a>
-        <input type="text" value={this.state.add} onChange={this.addTopic.bind(this)} onKeyPress={this.handleKeyPress.bind(this)}/>
+        <a className='add' onClick={(e) => this._firstTopic(this)}>+&nbsp;</a>
+        <input type="text" value={this.state.add} onChange={this.addTopic.bind(this)} onKeyPress={this.handleKPFirst.bind(this)}/>
       </li>
     }
   }
