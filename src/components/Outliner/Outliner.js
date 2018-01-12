@@ -156,7 +156,7 @@ class Tree extends React.Component {
     }
 
     handleKeyPress(type, index, event) {
-      if(event.key === 'Enter'){
+      if (event.charCode === 13){
         switch (type) {
           case 'child':
             this._push(this.state.add,this.props.father);
